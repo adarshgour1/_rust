@@ -1,25 +1,14 @@
-use rusqlite::{Connection, Result, params};
+use crate::Result;
+use rusqlite::{Connection, params};
 
 #[derive(Debug)]
 pub struct Task {
-    id: Option<i32>,
-    description: String,
-    is_done: bool,
+    pub id: Option<i32>,
+    pub description: String,
+    pub is_done: bool,
 }
 
 impl Task {
-    pub fn new(description: String, is_done: bool) -> Self {
-        Self {
-            id: None,
-            description,
-            is_done,
-        }
-    }
-
-    pub fn set_id(&mut self, id: i32) {
-        self.id = Some(id);
-    }
-
     pub fn save(&self, conn: &Connection) -> Result<()> {
         conn.execute(
             "INSERT INTO task (description, is_done) VALUES  (?1, ?2)",
@@ -36,7 +25,7 @@ impl Task {
     }
 
     pub fn get_by_id(conn: &Connection, id: i32) -> Result<Self> {
-        conn.query_one(
+        let task = conn.query_one(
             "SELECT id, description, is_done FROM task WHERE id = ?1",
             [&id],
             |row| {
@@ -46,7 +35,9 @@ impl Task {
                     is_done: row.get(2)?,
                 })
             },
-        )
+        );
+
+        Ok(task?)
     }
 
     pub fn get_all(conn: &Connection) -> Result<Vec<Self>> {
@@ -64,6 +55,7 @@ impl Task {
         for task in task_iter {
             tasks.push(task?);
         }
+
         Ok(tasks)
     }
 }
@@ -71,7 +63,7 @@ impl Task {
 impl std::fmt::Display for Task {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if let Some(id) = self.id {
-            write!(f, "id: {}, ", id)?;
+            write!(f, "id: {id}, ",)?;
         }
         write!(
             f,
