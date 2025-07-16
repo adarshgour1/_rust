@@ -4,6 +4,7 @@ use rusqlite::Connection;
 
 const CREATE_DEVICES_TABLE: &str = "CREATE TABLE IF NOT EXISTS devices (
 id INTEGER PRIMARY KEY,
+name TEXT NOT NULL,
 ipaddr TEXT NOT NULL
 )";
 

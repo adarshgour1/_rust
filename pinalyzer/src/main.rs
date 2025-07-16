@@ -15,7 +15,7 @@ struct Cli {
 }
 
 impl Cli {
-    fn execute(&self, conn: &Connection) -> Result<()> {
+    fn execute(self, conn: &Connection) -> Result<()> {
         self.command.execute(conn)?;
         Ok(())
     }
