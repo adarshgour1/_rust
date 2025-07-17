@@ -1,5 +1,5 @@
-mod init;
 mod device;
+mod init;
 
 use crate::Result;
 use clap::Subcommand;

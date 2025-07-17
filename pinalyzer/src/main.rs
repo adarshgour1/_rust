@@ -1,6 +1,7 @@
 mod cmd;
 mod error;
 mod modules;
+mod format;
 
 use clap::Parser;
 pub use error::{Error, Result};
