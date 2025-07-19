@@ -1,11 +1,13 @@
 mod cmd;
 mod error;
-mod modules;
 mod format;
+mod modules;
 
 use clap::Parser;
 pub use error::{Error, Result};
 use rusqlite::Connection;
+
+use crate::format::Format;
 
 #[derive(Parser)]
 #[command(version)]
@@ -13,11 +15,14 @@ use rusqlite::Connection;
 struct Cli {
     #[command(subcommand)]
     command: cmd::Command,
+
+    #[arg(long, short, global = true, value_enum, default_value = "table")]
+    format: Format,
 }
 
 impl Cli {
     fn execute(self, conn: &Connection) -> Result<()> {
-        self.command.execute(conn)?;
+        self.command.execute(conn, &self.format)?;
         Ok(())
     }
 }

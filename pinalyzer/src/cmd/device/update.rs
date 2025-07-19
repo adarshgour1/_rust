@@ -1,4 +1,4 @@
-use crate::{Result, modules::device::Device};
+use crate::{Result, cmd::device::DeviceFormatter, modules::device::Device};
 use clap::Args;
 use rusqlite::Connection;
 
@@ -18,11 +18,10 @@ pub struct Update {
 }
 
 impl Update {
-    pub fn execute(self, conn: &Connection) -> Result<()> {
+    pub fn execute(self, conn: &Connection) -> Result<DeviceFormatter> {
         let new_device: Device = self.into();
         let device = new_device.update(conn)?;
-        println!("{device}");
-        Ok(())
+        Ok(DeviceFormatter::One(device.into()))
     }
 }
 

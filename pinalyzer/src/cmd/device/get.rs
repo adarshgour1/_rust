@@ -1,4 +1,4 @@
-use crate::{format::Formatter, modules::device::Device, Result};
+use crate::{Result, cmd::device::DeviceFormatter, modules::device::Device};
 use clap::Args;
 use rusqlite::Connection;
 
@@ -15,14 +15,14 @@ pub struct Get {
 }
 
 impl Get {
-    pub fn execute(&self, conn: &Connection) -> Result<()> {
-        if self.all {
-            let devices = Device::get_all(conn)?;
-            println!("{}", devices.table().unwrap());
-        } else if let Some(id) = self.id {
+    pub fn execute(&self, conn: &Connection) -> Result<DeviceFormatter> {
+        let formatter = if let Some(id) = self.id {
             let device = Device::get_by_id(conn, id)?;
-            println!("{}", device.table().unwrap());
-            }
-        Ok(())
+            DeviceFormatter::One(device.into())
+        } else {
+            let devices = Device::get_all(conn)?;
+            DeviceFormatter::Many(devices.into_iter().map(Device::into).collect())
+        };
+        Ok(formatter)
     }
 }

@@ -1,4 +1,4 @@
-use crate::{Result, modules::device::Device};
+use crate::{cmd::device::DeviceFormatter, modules::device::Device, Result};
 use clap::Args;
 use rusqlite::Connection;
 
@@ -10,9 +10,8 @@ pub struct Delete {
 }
 
 impl Delete {
-    pub fn execute(&self, conn: &Connection) -> Result<()> {
+    pub fn execute(&self, conn: &Connection) -> Result<DeviceFormatter> {
         let device = Device::delete(conn, self.id)?;
-        println!("{device}");
-        Ok(())
+        Ok(DeviceFormatter::One(device.into()))
     }
 }

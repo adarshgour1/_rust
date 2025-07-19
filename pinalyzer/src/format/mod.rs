@@ -1,32 +1,26 @@
-use derive_more::From;
-use serde::Serialize;
-use std::fmt::{Debug};
+mod error;
+use clap::ValueEnum;
+pub use error::{Error, Result};
 
+#[derive(Debug, Clone, ValueEnum)]
+pub enum Format {
+    Json,
+    Yaml,
+    Table,
+}
 
-pub type Result = std::result::Result<String, Error>;
+pub trait Formatter {
+    fn json(&self) -> Result;
 
-pub trait Formatter: Serialize {
-    
-    fn json(&self) -> Result {
-        let js = serde_json::to_string(self)?;
-        Ok(js)
-    }
-
-    fn yaml(&self) -> Result {
-        let yml = serde_yaml::to_string(self)?;
-        Ok(yml)
-    }
+    fn yaml(&self) -> Result;
 
     fn table(&self) -> Result;
 
-}
-
-#[derive(Debug, From)]
-pub enum Error {
-    #[from]
-    Json(serde_json::Error),
-
-    #[from]
-    Yaml(serde_yaml::Error),
-
+    fn parse(&self, format: &Format) -> Result {
+        match format {
+            Format::Json => self.json(),
+            Format::Yaml => self.yaml(),
+            Format::Table => self.table(),
+        }
+    }
 }

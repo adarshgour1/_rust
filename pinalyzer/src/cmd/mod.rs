@@ -1,7 +1,7 @@
 mod device;
 mod init;
 
-use crate::Result;
+use crate::{format::Format, Result};
 use clap::Subcommand;
 use rusqlite::Connection;
 
@@ -12,10 +12,10 @@ pub enum Command {
 }
 
 impl Command {
-    pub fn execute(self, conn: &Connection) -> Result<()> {
+    pub fn execute(self, conn: &Connection, format: &Format) -> Result<()> {
         match self {
             Command::Init(subcommand) => subcommand.execute(conn),
-            Command::Device(subcommand) => subcommand.execute(conn),
+            Command::Device(subcommand) => subcommand.execute(conn, format),
         }
     }
 }

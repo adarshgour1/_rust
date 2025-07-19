@@ -1,8 +1,7 @@
-use prettytable::{Table, row, table};
 use rusqlite::{Connection, params};
 use serde::Serialize;
 
-use crate::{Result, format::Formatter};
+use crate::{Result};
 
 #[derive(Debug, Serialize)]
 pub struct Device {
@@ -90,52 +89,5 @@ impl Device {
             devices.push(d?);
         }
         Ok(devices)
-    }
-}
-
-impl std::fmt::Display for Device {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:#?}")
-    }
-}
-
-impl Formatter for Device {
-    fn table(&self) -> crate::format::Result {
-        let mut table = table!([
-            if let Some(id) = self.id {
-                format!("{id}")
-            } else {
-                format!("")
-            },
-            self.name,
-            self.ipaddr
-        ]);
-
-        
-        table.set_titles(row!["id", "name", "ipaddr"]);
-        table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
-        Ok(table.to_string())
-    }
-}
-
-impl Formatter for Vec<Device> {
-    fn table(&self) -> crate::format::Result {
-        let mut table = Table::new();
-        table.set_titles(row!["id", "name", "ipaddr"]);
-        table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
-
-        for d in self.iter() {
-            table.add_row(row![
-                if let Some(id) = d.id {
-                    format!("{id}")
-                } else {
-                    format!("")
-                },
-                d.name,
-                d.ipaddr,
-            ]);
-        }
-
-        Ok(table.to_string())
     }
 }

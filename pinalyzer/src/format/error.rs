@@ -1,14 +1,15 @@
 use derive_more::From;
+use std::fmt::Debug;
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result = std::result::Result<String, Error>;
 
 #[derive(Debug, From)]
 pub enum Error {
     #[from]
-    DB(rusqlite::Error),
+    Json(serde_json::Error),
 
     #[from]
-    Formatter(crate::format::Error),
+    Yaml(serde_yaml::Error),
 }
 
 impl std::error::Error for Error {}
