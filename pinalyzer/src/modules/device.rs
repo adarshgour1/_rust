@@ -1,7 +1,9 @@
+use std::net::Ipv4Addr;
+
 use rusqlite::{Connection, params};
 use serde::Serialize;
 
-use crate::{Result};
+use crate::Result;
 
 #[derive(Debug, Serialize)]
 pub struct Device {
@@ -12,9 +14,11 @@ pub struct Device {
 
 impl Device {
     pub fn save(&self, conn: &Connection) -> Result<Device> {
+        let ip: Ipv4Addr = self.ipaddr.parse()?;
+
         let device = conn.query_one(
             "INSERT INTO devices(name, ipaddr) VALUES (?1, ?2) RETURNING id, name, ipaddr",
-            params![self.name, self.ipaddr],
+            params![self.name, ip.to_string()],
             |row| {
                 Ok(Self {
                     id: Some(row.get(0)?),
@@ -42,9 +46,11 @@ impl Device {
         Ok(device?)
     }
     pub fn update(&self, conn: &Connection) -> Result<Device> {
+        let ip: Ipv4Addr = self.ipaddr.parse()?;
+
         let device = conn.query_one(
             "UPDATE devices set name=?1, ipaddr=?2 where id = ?3 RETURNING id, name, ipaddr",
-            params![self.name, self.ipaddr, self.id],
+            params![self.name, ip.to_string(), self.id],
             |row| {
                 Ok(Self {
                     id: Some(row.get(0)?),

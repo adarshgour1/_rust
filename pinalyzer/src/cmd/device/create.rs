@@ -2,7 +2,7 @@ use crate::{cmd::device::DeviceFormatter, modules::device::Device, Result};
 use clap::Args;
 use rusqlite::Connection;
 
-#[derive(Args)]
+#[derive(Args, PartialEq)]
 pub struct Create {
     /// device name
     #[arg(long)]

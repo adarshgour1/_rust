@@ -2,16 +2,27 @@ mod cmd;
 mod error;
 mod format;
 mod modules;
+mod plugin;
 
 use clap::Parser;
 pub use error::{Error, Result};
-use rusqlite::Connection;
+use log::debug;
 
-use crate::format::Format;
+use crate::{
+    error::ConsoleDisplayError,
+    format::{Format, Formatter},
+};
+
+const DB_FILE: &str = "ping-data.db";
 
 #[derive(Parser)]
 #[command(version)]
-#[command(about="Ping Analyzer", long_about = None)]
+#[command(about="Ping Analyzer")]
+#[command(long_about = r#"
+Ping Analyzer
+
+It is used to ping multiple ips at same time and collect the data in sqlite db.
+Several mathamatical tools can be run to analyze the collected data."#)]
 struct Cli {
     #[command(subcommand)]
     command: cmd::Command,
@@ -21,15 +32,25 @@ struct Cli {
 }
 
 impl Cli {
-    fn execute(self, conn: &Connection) -> Result<()> {
-        self.command.execute(conn, &self.format)?;
+    fn execute(self) -> Result<()> {
+        self.command.execute(&self.format)?;
         Ok(())
     }
 }
 
-fn main() -> Result<()> {
+fn main() {
     env_logger::init(); // RUST_LOG=debug
-    let db = Connection::open("./ping-data.db")?;
+
     let cli = Cli::parse();
-    cli.execute(&db)
+    let format = cli.format.clone();
+
+    if let Err(e) = cli.execute() {
+        debug!("{:?}", e);
+        println!(
+            "{}",
+            ConsoleDisplayError::from(e)
+                .parse(&format)
+                .expect("internal error")
+        );
+    }
 }

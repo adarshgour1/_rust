@@ -1,21 +1,23 @@
 mod device;
 mod init;
+mod ping;
 
-use crate::{format::Format, Result};
+use crate::{Result, format::Format};
 use clap::Subcommand;
-use rusqlite::Connection;
 
-#[derive(Subcommand)]
+#[derive(Subcommand, PartialEq)]
 pub enum Command {
     Init(init::InitCommand),
     Device(device::DeviceCommand),
+    Ping(ping::PingCommand),
 }
 
 impl Command {
-    pub fn execute(self, conn: &Connection, format: &Format) -> Result<()> {
+    pub fn execute(self, format: &Format) -> Result<()> {
         match self {
-            Command::Init(subcommand) => subcommand.execute(conn),
-            Command::Device(subcommand) => subcommand.execute(conn, format),
+            Command::Init(subcommand) => subcommand.execute(),
+            Command::Device(subcommand) => subcommand.execute(format),
+            Command::Ping(subcommand) => subcommand.execute(format),
         }
     }
 }

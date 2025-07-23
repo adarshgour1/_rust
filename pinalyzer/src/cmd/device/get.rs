@@ -2,7 +2,7 @@ use crate::{Result, cmd::device::DeviceFormatter, modules::device::Device};
 use clap::Args;
 use rusqlite::Connection;
 
-#[derive(Args)]
+#[derive(Args, PartialEq)]
 #[group(required = true, multiple = false)]
 pub struct Get {
     /// Device Id

@@ -9,25 +9,32 @@ use crate::format::{Format, Formatter};
 use super::Result;
 use clap::{Parser, Subcommand};
 use prettytable::{Table, row};
-use rusqlite::Connection;
+use rusqlite::{Connection, OpenFlags};
 use serde::Serialize;
 
 // ------------------------------- command section ------------------------------------
-#[derive(Parser)]
+#[derive(Parser, PartialEq)]
 pub struct DeviceCommand {
     #[command[subcommand]]
     command: Command,
 }
 
 impl DeviceCommand {
-    pub fn execute(self, conn: &Connection, format: &Format) -> Result<()> {
-        let formatter = self.command.execute(conn)?;
+    pub fn execute(self, format: &Format) -> Result<()> {
+        let conn = Connection::open_with_flags(
+            crate::DB_FILE,
+            OpenFlags::SQLITE_OPEN_READ_WRITE
+                | OpenFlags::SQLITE_OPEN_NO_MUTEX
+                | OpenFlags::SQLITE_OPEN_URI,
+        )?;
+
+        let formatter = self.command.execute(&conn)?;
         println!("{}", formatter.parse(format)?);
         Ok(())
     }
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, PartialEq)]
 pub enum Command {
     Get(get::Get),
     Create(create::Create),
@@ -80,13 +87,6 @@ impl Formatter for DeviceFormatter {
         match self {
             Self::One(device) => Ok(serde_json::to_string(device)?),
             Self::Many(devices) => Ok(serde_json::to_string(devices)?),
-        }
-    }
-
-    fn yaml(&self) -> crate::format::Result {
-        match self {
-            Self::One(device) => Ok(serde_yaml::to_string(device)?),
-            Self::Many(devices) => Ok(serde_yaml::to_string(devices)?),
         }
     }
 
