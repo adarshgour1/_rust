@@ -1,3 +1,4 @@
+
 use std::net::Ipv4Addr;
 use std::time::{Duration, Instant};
 use std::{io, mem};
@@ -6,8 +7,10 @@ use libc::{
     AF_INET, IPPROTO_ICMP, SO_RCVTIMEO, SOCK_RAW, SOL_SOCKET, recvfrom, sendto, setsockopt, socket,
 };
 
+// ICMP type for echo request packets
 const ICMP_ECHO_REQUEST: u8 = 8;
 
+// ICMP header structure for echo request/reply
 #[repr(C, packed)]
 struct IcmpHeader {
     type_: u8,
@@ -17,6 +20,7 @@ struct IcmpHeader {
     sequence_number: u16,
 }
 
+// Calculate the checksum for an ICMP packet
 fn checksum(data: &[u8]) -> u16 {
     let mut sum = 0u32;
     let mut chunks = data.chunks_exact(2);
@@ -33,6 +37,7 @@ fn checksum(data: &[u8]) -> u16 {
     !(sum as u16)
 }
 
+// Create an ICMP echo request packet with the given sequence and identifier
 fn create_icmp_packet(seq: u16, id: u16) -> Vec<u8> {
     let payload = b"PING";
     let mut packet = Vec::with_capacity(8 + payload.len());
@@ -51,7 +56,7 @@ fn create_icmp_packet(seq: u16, id: u16) -> Vec<u8> {
     packet.extend_from_slice(header_bytes);
     packet.extend_from_slice(payload);
 
-    // Recalculate checksum
+    // Recalculate checksum after adding payload
     let cksum = checksum(&packet);
     header.checksum = cksum;
     let header_bytes =
@@ -61,21 +66,22 @@ fn create_icmp_packet(seq: u16, id: u16) -> Vec<u8> {
     packet
 }
 
+// Statistics for a ping session
 pub struct PingStats {
-    pub transmitted: u32,
-    pub received: u32,
-    pub loss: f32,
-    pub min: Option<f64>,
-    pub max: Option<f64>,
-    pub avg: Option<f64>,
+    pub transmitted: u32, // Number of packets sent
+    pub received: u32,    // Number of packets received
+    pub loss: f32,        // Packet loss percentage
+    pub min: Option<f64>, // Minimum round-trip time (ms)
+    pub max: Option<f64>, // Maximum round-trip time (ms)
+    pub avg: Option<f64>, // Average round-trip time (ms)
 }
 
+// Pinger struct encapsulates socket and ping logic
 pub struct Pinger {
-    sock: i32,
-    
+    sock: i32,            // Raw socket descriptor
     #[allow(dead_code)]
-    timeout: Duration,
-    id: u16,
+    timeout: Duration,    // Timeout for receiving replies
+    id: u16,              // Identifier for ICMP packets
 }
 
 impl Pinger {

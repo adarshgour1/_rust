@@ -1,3 +1,4 @@
+
 use std::net::Ipv4Addr;
 use std::sync::{
     Arc,
@@ -16,6 +17,8 @@ use crate::modules::Device;
 use crate::modules::PingStats as ModulePingStats;
 use crate::plugin::Pinger;
 
+
+// Command-line arguments for the 'collect' subcommand
 #[derive(Debug, Args, PartialEq)]
 pub struct Collect {
     /// Ping all devices
@@ -31,30 +34,33 @@ pub struct Collect {
     frequency: u64,
 }
 
+
 impl Collect {
+    // Execute the collect command: ping devices and store stats in the database
     pub fn execute(&self, conn: &Connection) -> Result<()> {
         let running = Arc::new(AtomicBool::new(true));
         let r = running.clone();
 
-        // Handle Ctrl+C gracefully
+        // Handle Ctrl+C gracefully to allow clean shutdown
         ctrlc::set_handler(move || {
             println!("\nReceived Ctrl+C, shutting down gracefully...");
             r.store(false, Ordering::SeqCst);
         })
         .expect("Error setting Ctrl+C handler");
 
-        let devices = self.get_devices(conn)?;
-        let pinger = Pinger::new(Duration::from_secs(1))?;
+        let devices = self.get_devices(conn)?; // Get list of devices to ping
+        let pinger = Pinger::new(Duration::from_secs(1))?; // Create a pinger with 1s timeout
 
         while running.load(Ordering::SeqCst) {
             for device in &devices {
                 if !running.load(Ordering::SeqCst) {
                     break;
                 }
-                let ip: Ipv4Addr = device.ipaddr.parse()?;
-                let timestamp = chrono::Utc::now();
-                let stats = pinger.ping(ip, 4)?;
+                let ip: Ipv4Addr = device.ipaddr.parse()?; // Parse device IP address
+                let timestamp = chrono::Utc::now(); // Get current timestamp
+                let stats = pinger.ping(ip, 4)?; // Ping the device 4 times
 
+                // Create a PingStats record and save it to the database
                 let ping_stats = ModulePingStats::new(
                     timestamp.to_rfc3339(),
                     device.id.unwrap(),
@@ -68,12 +74,13 @@ impl Collect {
 
                 ping_stats.save(conn)?;
                 println!("{}", ping_stats);
-                thread::sleep(Duration::from_secs(self.frequency));
             }
+            thread::sleep(Duration::from_secs(self.frequency)); // Wait before next ping
         }
         Ok(())
     }
 
+    // Get the list of devices to ping, filtered by IDs if provided
     fn get_devices(&self, conn: &Connection) -> Result<Vec<Device>> {
         let devices = Device::get_all(conn)?;
 

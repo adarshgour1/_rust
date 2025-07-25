@@ -2,19 +2,22 @@ use super::Result;
 use rusqlite::{Connection, params};
 use serde::Serialize;
 
+
+// Represents a record of ping statistics for a device
 #[derive(Debug, Serialize)]
 pub struct PingStats {
     pub timestamp: String, // RFC 3339 and ISO 8601 date and time string such as 1996-12-19T16:39:57-08:00
-    pub device_id: i32,
-    pub transmitted: u32,
-    pub received: u32,
-    pub loss: f32,
-    pub min: Option<f64>,
-    pub max: Option<f64>,
-    pub avg: Option<f64>,
+    pub device_id: i32,    // ID of the device this stat belongs to
+    pub transmitted: u32,  // Number of packets sent
+    pub received: u32,     // Number of packets received
+    pub loss: f32,         // Packet loss percentage
+    pub min: Option<f64>,  // Minimum round-trip time (ms)
+    pub max: Option<f64>,  // Maximum round-trip time (ms)
+    pub avg: Option<f64>,  // Average round-trip time (ms)
 }
 
 impl PingStats {
+    // Create a new PingStats record
     pub fn new(
         timestamp: String,
         device_id: i32,
@@ -37,6 +40,7 @@ impl PingStats {
         }
     }
 
+    // Save this PingStats record to the database
     pub fn save(&self, conn: &Connection) -> Result<()> {
         conn.execute(
             "INSERT INTO ping_data (timestamp, device_id, transmitted, received, loss, min, max, avg) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -54,6 +58,7 @@ impl PingStats {
         Ok(())
     }
 
+    // Retrieve the most recent PingStats records for a device
     pub fn get(conn: &Connection, device_id: i32, limit: usize) -> Result<Vec<PingStats>> {
         let mut stmt = conn.prepare("SELECT timestamp, device_id, transmitted, received, loss, min, max, avg FROM ping_data WHERE device_id = ? ORDER BY timestamp DESC LIMIT ?")?;
         let rows = stmt.query_map(params![device_id, limit], |row| {
