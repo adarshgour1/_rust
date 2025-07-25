@@ -1,1 +1,3 @@
-pub mod ping;
+mod ping;
+
+pub use ping::Pinger;

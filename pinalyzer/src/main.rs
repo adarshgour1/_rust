@@ -8,16 +8,13 @@ use clap::Parser;
 pub use error::{Error, Result};
 use log::debug;
 
-use crate::{
-    error::ConsoleDisplayError,
-    format::{Format, Formatter},
-};
+use crate::format::{Format, Formatter};
 
 const DB_FILE: &str = "ping-data.db";
 
 #[derive(Parser)]
 #[command(version)]
-#[command(about="Ping Analyzer")]
+#[command(about = "Ping Analyzer")]
 #[command(long_about = r#"
 Ping Analyzer
 
@@ -46,11 +43,6 @@ fn main() {
 
     if let Err(e) = cli.execute() {
         debug!("{:?}", e);
-        println!(
-            "{}",
-            ConsoleDisplayError::from(e)
-                .parse(&format)
-                .expect("internal error")
-        );
+        println!("{}", e.parse(&format).unwrap())
     }
 }

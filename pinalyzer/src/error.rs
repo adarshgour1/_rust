@@ -1,69 +1,31 @@
-use std::net::AddrParseError;
-
 use derive_more::{Display, From};
 use prettytable::{Table, row};
-use rusqlite::ffi;
 use serde::Serialize;
 
 use crate::format::Formatter;
-
 pub type Result<T> = std::result::Result<T, Error>;
+
+use crate::cmd::Error as CmdError;
+use crate::modules::Error as ModuleError;
 
 #[derive(Debug, From, Display)]
 pub enum Error {
     #[from]
-    DB(rusqlite::Error),
+    #[display("Module error: {}", _0)]
+    Module(ModuleError),
 
     #[from]
-    Formatter(crate::format::Error),
+    Cmd(CmdError),
 
     #[from]
-    Io(std::io::Error),
-
-    #[from]
-    Ip(AddrParseError),
+    Internal(Internal),
 }
 
 impl std::error::Error for Error {}
 
-// --------------------------------------------------- ConsoleDisplayError -----------------------------------------------------
-// This will be displayed as console error
-#[derive(Debug, From, Display, Serialize)]
-pub enum ConsoleDisplayError {
-    #[display("Application is not initialize, run init command")]
-    NoDatabaseExists,
-
-    #[display("no data found")]
-    NoDataFound,
-
-    #[display("internal error")]
-    Internal,
-
-    Ip(String)
-}
-impl std::error::Error for ConsoleDisplayError {}
-
-impl From<self::Error> for ConsoleDisplayError {
-    fn from(value: self::Error) -> Self {
-        match value {
-            Error::DB(rusqlite::Error::SqliteFailure(
-                ffi::Error {
-                    code: ffi::ErrorCode::CannotOpen,
-                    extended_code: _,
-                },
-                _,
-            )) => Self::NoDatabaseExists,
-
-            Error::DB(rusqlite::Error::QueryReturnedNoRows) => Self::NoDataFound,
-            Error::Ip(e) => Self::Ip(e.to_string()),
-            _ => Self::Internal,
-        }
-    }
-}
-
-impl Formatter for ConsoleDisplayError {
+impl Formatter for Error {
     fn json(&self) -> crate::format::Result {
-        Ok(format!(r#"{{"error":{}}}"#, serde_json::to_string(self)?))
+        Ok(format!(r#"{{"error":{}}}"#, self))
     }
 
     fn table(&self) -> crate::format::Result {
@@ -74,3 +36,15 @@ impl Formatter for ConsoleDisplayError {
         Ok(table.to_string())
     }
 }
+
+#[derive(Debug, From, Display, Serialize)]
+pub enum Internal {
+    #[display("no data found")]
+    NoDataFound,
+    #[display("no database file found, run init command first")]
+    NoDatabaseFile,
+    #[display("internal error")]
+    InternalError,
+}
+
+impl std::error::Error for Internal {}

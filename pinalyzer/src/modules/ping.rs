@@ -1,3 +1,4 @@
+use super::Result;
 use rusqlite::{Connection, params};
 use serde::Serialize;
 
@@ -36,7 +37,7 @@ impl PingStats {
         }
     }
 
-    pub fn save(&self, conn: &Connection) -> crate::Result<()> {
+    pub fn save(&self, conn: &Connection) -> Result<()> {
         conn.execute(
             "INSERT INTO ping_data (timestamp, device_id, transmitted, received, loss, min, max, avg) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             params![
@@ -53,7 +54,7 @@ impl PingStats {
         Ok(())
     }
 
-    pub fn get(conn: &Connection, device_id: i32, limit: usize) -> crate::Result<Vec<PingStats>> {
+    pub fn get(conn: &Connection, device_id: i32, limit: usize) -> Result<Vec<PingStats>> {
         let mut stmt = conn.prepare("SELECT timestamp, device_id, transmitted, received, loss, min, max, avg FROM ping_data WHERE device_id = ? ORDER BY timestamp DESC LIMIT ?")?;
         let rows = stmt.query_map(params![device_id, limit], |row| {
             Ok(PingStats {
@@ -72,6 +73,7 @@ impl PingStats {
         for row in rows {
             stats.push(row?);
         }
+
         Ok(stats)
     }
 }

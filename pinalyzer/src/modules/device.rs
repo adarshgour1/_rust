@@ -3,7 +3,7 @@ use std::net::Ipv4Addr;
 use rusqlite::{Connection, params};
 use serde::Serialize;
 
-use crate::Result;
+use super::{Result};
 
 #[derive(Debug, Serialize)]
 pub struct Device {
@@ -89,6 +89,7 @@ impl Device {
                 ipaddr: row.get(2)?,
             })
         })?;
+
 
         let mut devices = Vec::new();
         for d in device_iter {

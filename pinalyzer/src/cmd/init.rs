@@ -1,7 +1,7 @@
-use super::Result;
 use clap::Parser;
 use rusqlite::{Connection, OpenFlags};
 
+use super::Result;
 use crate::modules::init::{create_tables, drop_tables};
 
 #[derive(Parser, PartialEq)]
@@ -24,6 +24,6 @@ impl InitCommand {
         if self.recreate {
             drop_tables(&conn)?;
         }
-        create_tables(&conn)
+        Ok(create_tables(&conn)?)
     }
 }

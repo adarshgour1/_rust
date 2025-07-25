@@ -1,9 +1,12 @@
 mod device;
 mod init;
 mod ping;
+mod error;
 
-use crate::{Result, format::Format};
+use crate::format::Format;
 use clap::Subcommand;
+
+pub use error::{Error, Result};
 
 #[derive(Subcommand, PartialEq)]
 pub enum Command {

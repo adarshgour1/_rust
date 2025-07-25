@@ -72,6 +72,8 @@ pub struct PingStats {
 
 pub struct Pinger {
     sock: i32,
+    
+    #[allow(dead_code)]
     timeout: Duration,
     id: u16,
 }
@@ -149,7 +151,7 @@ impl Pinger {
             };
 
             if recv_len < 0 {
-                eprintln!("Timeout or receive error for seq {}.", seq);
+                // eprintln!("Timeout or receive error for seq {}.", seq);
                 continue;
             }
 
@@ -157,7 +159,7 @@ impl Pinger {
             let ms = elapsed.as_secs_f64() * 1000.0;
             rtts.push(ms);
             received += 1;
-            println!("Reply from {}: seq={} time={:.2} ms", target_ip, seq, ms);
+            // println!("Reply from {}: seq={} time={:.2} ms", target_ip, seq, ms);
         }
 
         let loss = if transmitted > 0 {

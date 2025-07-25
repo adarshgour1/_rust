@@ -4,6 +4,7 @@ use crate::{
 };
 use clap::Args;
 use rusqlite::Connection;
+use super::{Result};
 
 #[derive(Debug, Args, PartialEq)]
 pub struct Get {
@@ -17,7 +18,7 @@ pub struct Get {
 }
 
 impl Get {
-    pub fn execute(&self, conn: &Connection, format: &Format) -> crate::Result<()> {
+    pub fn execute(&self, conn: &Connection, format: &Format) -> Result<()> {
         let ping_stats = crate::modules::ping::PingStats::get(&conn, self.id, self.limit)?;
 
         let formatter = PingDataFormatter::Many(ping_stats);

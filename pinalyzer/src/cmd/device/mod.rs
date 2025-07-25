@@ -4,13 +4,14 @@ mod get;
 mod update;
 
 use crate::format::{Format, Formatter};
-
-// external
-use super::Result;
 use clap::{Parser, Subcommand};
 use prettytable::{Table, row};
 use rusqlite::{Connection, OpenFlags};
 use serde::Serialize;
+
+// reexporting Result for convenience
+pub use super::Result;
+
 
 // ------------------------------- command section ------------------------------------
 #[derive(Parser, PartialEq)]

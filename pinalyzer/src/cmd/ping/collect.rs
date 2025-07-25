@@ -10,19 +10,20 @@ use clap::Args;
 use ctrlc;
 use rusqlite::Connection;
 
-use crate::modules::device::Device;
-use crate::modules::ping::PingStats as ModulePingStats;
-use crate::plugin::ping::Pinger;
+
+use super::{Result};
+use crate::modules::Device;
+use crate::modules::PingStats as ModulePingStats;
+use crate::plugin::Pinger;
 
 #[derive(Debug, Args, PartialEq)]
-#[group(required = true, multiple = false)]
 pub struct Collect {
     /// Ping all devices
-    #[arg(long, group = "devices_id")]
+    #[arg(long, conflicts_with = "ids", required_unless_present = "ids")]
     all: bool,
 
     /// Ping devices by id
-    #[arg(long, group = "devices_id")]
+    #[arg(long, conflicts_with = "all", required_unless_present = "all")]
     ids: Option<Vec<i32>>,
 
     /// Ping frequency in seconds
@@ -31,7 +32,7 @@ pub struct Collect {
 }
 
 impl Collect {
-    pub fn execute(&self, conn: &Connection) -> crate::Result<()> {
+    pub fn execute(&self, conn: &Connection) -> Result<()> {
         let running = Arc::new(AtomicBool::new(true));
         let r = running.clone();
 
@@ -73,7 +74,7 @@ impl Collect {
         Ok(())
     }
 
-    fn get_devices(&self, conn: &Connection) -> crate::Result<Vec<Device>> {
+    fn get_devices(&self, conn: &Connection) -> Result<Vec<Device>> {
         let devices = Device::get_all(conn)?;
 
         if let Some(ref ids) = self.ids {

@@ -1,5 +1,7 @@
 mod error;
 use clap::ValueEnum;
+
+// reexporting Result for convenience
 pub use error::{Error, Result};
 
 #[derive(Debug, Clone, ValueEnum)]

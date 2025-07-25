@@ -1,10 +1,16 @@
 mod collect;
 mod get;
-use crate::format::{Format, Formatter};
-use crate::{Result, modules::ping::PingStats};
+
 use clap::{Parser, Subcommand};
 use prettytable::{Table, row};
 use rusqlite::{Connection, OpenFlags};
+
+// reexporting Result for convenience
+pub use super::Result;
+
+// internal modules
+use crate::format::{Format, Formatter};
+use crate::{modules::PingStats};
 
 #[derive(Parser, PartialEq)]
 pub struct PingCommand {
@@ -43,14 +49,14 @@ impl Command {
 
 #[derive(Debug)]
 pub enum PingDataFormatter {
-    One(PingStats),
+    // One(PingStats),
     Many(Vec<PingStats>),
 }
 
 impl Formatter for PingDataFormatter {
     fn json(&self) -> crate::format::Result {
         match self {
-            Self::One(data) => Ok(serde_json::to_string(data)?),
+            // Self::One(data) => Ok(serde_json::to_string(data)?),
             Self::Many(data) => Ok(serde_json::to_string(data)?),
         }
     }
@@ -70,18 +76,18 @@ impl Formatter for PingDataFormatter {
         table.set_format(*prettytable::format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
 
         match self {
-            Self::One(ping_stats) => {
-                table.add_row(row![
-                    ping_stats.timestamp,
-                    ping_stats.device_id,
-                    ping_stats.transmitted,
-                    ping_stats.received,
-                    format!("{:.2}", ping_stats.loss * 100.0),
-                    ping_stats.min.map_or("N/A".to_string(), |v| v.to_string()),
-                    ping_stats.max.map_or("N/A".to_string(), |v| v.to_string()),
-                    ping_stats.avg.map_or("N/A".to_string(), |v| v.to_string()),
-                ]);
-            }
+            // Self::One(ping_stats) => {
+            //     table.add_row(row![
+            //         ping_stats.timestamp,
+            //         ping_stats.device_id,
+            //         ping_stats.transmitted,
+            //         ping_stats.received,
+            //         format!("{:.2}", ping_stats.loss * 100.0),
+            //         ping_stats.min.map_or("N/A".to_string(), |v| v.to_string()),
+            //         ping_stats.max.map_or("N/A".to_string(), |v| v.to_string()),
+            //         ping_stats.avg.map_or("N/A".to_string(), |v| v.to_string()),
+            //     ]);
+            // }
             Self::Many(ping_stats) => {
                 for s in ping_stats.iter() {
                     table.add_row(row![

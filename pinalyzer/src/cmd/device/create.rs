@@ -1,4 +1,6 @@
-use crate::{cmd::device::DeviceFormatter, modules::device::Device, Result};
+use super::{DeviceFormatter, Result};
+use crate::modules::Device;
+
 use clap::Args;
 use rusqlite::Connection;
 
